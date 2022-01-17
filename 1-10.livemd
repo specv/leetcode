@@ -1,0 +1,17 @@
+# 1-10
+
+## 1. Two Sum
+
+```elixir
+defmodule Solution do
+  @spec two_sum(nums :: [integer], target :: integer) :: [integer]
+  def two_sum(nums, target) do
+    for {x, i} <- Enum.with_index(nums),
+        {y, j} <- Enum.with_index(Enum.drop(nums, i + 1), i + 1),
+        x + y == target do
+      [i, j]
+    end
+    |> Enum.at(0)
+  end
+end
+```
