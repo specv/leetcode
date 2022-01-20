@@ -43,26 +43,26 @@ end
 defmodule Solution do
   @spec add_two_numbers(l1 :: ListNode.t() | nil, l2 :: ListNode.t() | nil) :: ListNode.t() | nil
   def add_two_numbers(l1, l2) do
-    # |> reverse()
     add_two_numbers(l1, l2, 0)
   end
 
-  def add_two_numbers(l1, l2, 0) when l1 == nil and l2 == nil do
+  def add_two_numbers(nil, nil, 0) do
     nil
   end
 
-  def add_two_numbers(l1, l2, 1) when l1 == nil and l2 == nil do
+  def add_two_numbers(nil, nil, 1) do
     %ListNode{val: 1}
   end
 
-  def add_two_numbers(l1, l2, carry) do
-    {l1, l2} =
-      cond do
-        l1 == nil -> {%ListNode{val: 0}, l2}
-        l2 == nil -> {l1, %ListNode{val: 0}}
-        true -> {l1, l2}
-      end
+  def add_two_numbers(l1, nil, carry) do
+    add_two_numbers(l1, %ListNode{val: 0}, carry)
+  end
 
+  def add_two_numbers(nil, l2, carry) do
+    add_two_numbers(%ListNode{val: 0}, l2, carry)
+  end
+
+  def add_two_numbers(l1, l2, carry) do
     val = l1.val + l2.val + carry
 
     %ListNode{
