@@ -1,6 +1,6 @@
 # 1-10
 
-## Two Sum
+## 1. Two Sum
 
 ```elixir
 defmodule Solution do
@@ -26,6 +26,77 @@ defmodule Test do
     assert Solution.two_sum([2, 7, 11, 15], 9) == [0, 1]
     assert Solution.two_sum([3, 2, 4], 6) == [1, 2]
     assert Solution.two_sum([3, 3], 6) == [0, 1]
+  end
+end
+
+ExUnit.run()
+```
+
+## 2. Add Two Numbers
+
+```elixir
+defmodule ListNode do
+  @type t :: %__MODULE__{val: integer, next: ListNode.t() | nil}
+  defstruct val: 0, next: nil
+end
+
+defmodule Solution do
+  @spec add_two_numbers(l1 :: ListNode.t() | nil, l2 :: ListNode.t() | nil) :: ListNode.t() | nil
+  def add_two_numbers(l1, l2) do
+    # |> reverse()
+    add_two_numbers(l1, l2, 0)
+  end
+
+  def add_two_numbers(l1, l2, 0) when l1 == nil and l2 == nil do
+    nil
+  end
+
+  def add_two_numbers(l1, l2, 1) when l1 == nil and l2 == nil do
+    %ListNode{val: 1}
+  end
+
+  def add_two_numbers(l1, l2, carry) do
+    {l1, l2} =
+      cond do
+        l1 == nil -> {%ListNode{val: 0}, l2}
+        l2 == nil -> {l1, %ListNode{val: 0}}
+        true -> {l1, l2}
+      end
+
+    val = l1.val + l2.val + carry
+
+    %ListNode{
+      val: rem(val, 10),
+      next: add_two_numbers(l1.next, l2.next, div(val, 10))
+    }
+  end
+end
+```
+
+```elixir
+ExUnit.start(autorun: false)
+
+defmodule Test do
+  use ExUnit.Case
+
+  def new(list) do
+    list
+    |> Enum.reverse()
+    |> Enum.reduce(nil, fn val, node ->
+      %ListNode{val: val, next: node}
+    end)
+  end
+
+  test nil do
+    assert Solution.add_two_numbers(new([1, 2, 3, 4]), new([0, 0, 0, 0])) == new([1, 2, 3, 4])
+    assert Solution.add_two_numbers(new([1, 2, 3, 4]), new([1, 2, 3, 4])) == new([2, 4, 6, 8])
+    assert Solution.add_two_numbers(new([0]), new([0])) == new([0])
+    assert Solution.add_two_numbers(new([2, 4, 3]), new([5, 6, 4])) == new([7, 0, 8])
+
+    assert Solution.add_two_numbers(
+             new([9, 9, 9, 9, 9, 9, 9]),
+             new([9, 9, 9, 9])
+           ) == new([8, 9, 9, 9, 0, 0, 0, 1])
   end
 end
 
