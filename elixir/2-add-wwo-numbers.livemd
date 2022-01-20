@@ -1,38 +1,6 @@
-# 1-10
+# 2. Add Two Numbers
 
-## 1. Two Sum
-
-```elixir
-defmodule Solution do
-  @spec two_sum(nums :: [integer], target :: integer) :: [integer]
-  def two_sum(nums, target) do
-    for {x, i} <- Enum.with_index(nums),
-        {y, j} <- Enum.with_index(Enum.drop(nums, i + 1), i + 1),
-        x + y == target do
-      [i, j]
-    end
-    |> Enum.at(0)
-  end
-end
-```
-
-```elixir
-ExUnit.start(autorun: false)
-
-defmodule Test do
-  use ExUnit.Case
-
-  test nil do
-    assert Solution.two_sum([2, 7, 11, 15], 9) == [0, 1]
-    assert Solution.two_sum([3, 2, 4], 6) == [1, 2]
-    assert Solution.two_sum([3, 3], 6) == [0, 1]
-  end
-end
-
-ExUnit.run()
-```
-
-## 2. Add Two Numbers
+## S1
 
 ```elixir
 defmodule ListNode do
