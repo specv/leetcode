@@ -3,10 +3,10 @@
 ## S1
 
 ```elixir
-defmodule Solution do
+defmodule S1 do
   @spec length_of_longest_substring(s :: String.t()) :: integer
   def length_of_longest_substring(s) do
-    for i <- 0..(byte_size(s) - 1), j <- 0..(byte_size(s) - 1), i <= j do
+    for i <- 0..(byte_size(s) - 1), j <- i..(byte_size(s) - 1) do
       String.slice(s, i..j)
     end
     |> Enum.sort_by(&byte_size/1, :desc)
@@ -18,20 +18,134 @@ defmodule Solution do
 end
 ```
 
+## S2
+
+```elixir
+defmodule Solution do
+defmodule S2 do
+  @spec length_of_longest_substring(s :: String.t()) :: integer
+  def length_of_longest_substring(s) do
+    recur(s, 0, String.length(s))
+  end
+
+  def recur(s, i, len) do
+    cond do
+      len <= 1 -> len
+      i + len > byte_size(s) -> recur(s, 0, len - 1)
+      unique?(s, i, len) -> len
+      true -> recur(s, i + 1, len)
+    end
+  end
+
+  defp unique?(_, _, len) when len > 63 do
+    false
+  end
+
+  defp unique?(s, i, len) do
+    s
+    |> String.to_charlist()
+    |> Enum.slice(i, len)
+    |> Enum.frequencies()
+    |> Enum.all?(fn {_, v} -> v == 1 end)
+  end
+end
+```
+
+## S2 - optimized
+
+```elixir
+defmodule S2OP do
+  @spec length_of_longest_substring(s :: String.t()) :: integer
+  def length_of_longest_substring(s) do
+    recur(String.graphemes(s), 0, String.length(s))
+  end
+
+  def recur(l, i, len) do
+    cond do
+      len <= 1 -> len
+      i + len > length(l) -> recur(l, 0, len - 1)
+      unique?(l, i, len) -> len
+      true -> recur(l, i + 1, len)
+    end
+  end
+
+  defp unique?(_, _, len) when len > 63 do
+    false
+  end
+
+  defp unique?(l, index, len) do
+    Enum.slice(l, index, len) |> unique?()
+  end
+
+  defp unique?([]) do
+    true
+  end
+
+  defp unique?(l) do
+    [c | l] = l
+
+    if unique?(l, c) do
+      unique?(l)
+    else
+      false
+    end
+  end
+
+  defp unique?([], _) do
+    true
+  end
+
+  defp unique?([first | _rest], c) when c == first do
+    false
+  end
+
+  defp unique?([first | rest], c) when c != first do
+    unique?(rest, c)
+  end
+end
+```
+## S3
+
+from: [Idiomatic Elixir using pattern matching and tail recursion](https://leetcode.com/problems/longest-substring-without-repeating-characters/discuss/1511502/Idiomatic-Elixir-using-pattern-matching-and-tail-recursion)
+
+```elixir
+defmodule S3 do
+  @spec length_of_longest_substring(s :: String.t()) :: integer
+  def length_of_longest_substring(s), do: max_ss(String.graphemes(s), [], 0)
+
+  defp max_ss([], _window, max_len), do: max_len
+
+  defp max_ss([c | chars], window, max_len) do
+    {new_window, window_len} = scan(window, c)
+    max_ss(chars, new_window, max(max_len, window_len))
+  end
+
+  defp scan(window, c, acc \\ [], len \\ 0)
+  defp scan([], c, acc, len), do: {Enum.reverse([c | acc]), len + 1}
+  defp scan([wc | rest], c, acc, len) when wc != c, do: scan(rest, c, [wc | acc], len + 1)
+  defp scan([wc | rest], c, _acc, _len) when wc == c, do: scan(rest, c, [], 0)
+end
+```
 ```elixir
 ExUnit.start(autorun: false)
 
 defmodule Test do
+  alias S2OP, as: Solution
   use ExUnit.Case
 
   test nil do
+    assert Solution.length_of_longest_substring("") == 0
     assert Solution.length_of_longest_substring("abcabcbb") == 3
     assert Solution.length_of_longest_substring("bbbbb") == 1
     assert Solution.length_of_longest_substring("pwwkew") == 3
 
     assert Solution.length_of_longest_substring(
              "wgvgblarjtolsgzdebatyzdksjncyocwwzczkctvyhgqqgwujynhxttpcgscuuyswdsgf"
-           ) > 0
+           ) == 12
+
+    assert Solution.length_of_longest_substring(
+             "hijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789hijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789hijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789hijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789hijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789hijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
+           ) == 55
   end
 end
 
