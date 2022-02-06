@@ -1,5 +1,13 @@
 # Longest Substring Without Repeating Characters
 
+## Setup
+
+```elixir
+Mix.install([
+  {:benchee, "~> 1.0"}
+])
+```
+
 ## S1
 
 ```elixir
@@ -21,7 +29,6 @@ end
 ## S2
 
 ```elixir
-defmodule Solution do
 defmodule S2 do
   @spec length_of_longest_substring(s :: String.t()) :: integer
   def length_of_longest_substring(s) do
@@ -104,6 +111,7 @@ defmodule S2OP do
   end
 end
 ```
+
 ## S3
 
 from: [Idiomatic Elixir using pattern matching and tail recursion](https://leetcode.com/problems/longest-substring-without-repeating-characters/discuss/1511502/Idiomatic-Elixir-using-pattern-matching-and-tail-recursion)
@@ -126,6 +134,9 @@ defmodule S3 do
   defp scan([wc | rest], c, _acc, _len) when wc == c, do: scan(rest, c, [], 0)
 end
 ```
+
+## Unit test
+
 ```elixir
 ExUnit.start(autorun: false)
 
@@ -150,4 +161,106 @@ defmodule Test do
 end
 
 ExUnit.run()
+```
+
+## Bench
+
+```elixir
+s =
+  "hijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789hijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789hijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789hijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789hijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789hijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
+
+Benchee.run(%{
+  # "s1" => fn -> S1.length_of_longest_substring(s) end,
+  "s2" => fn -> S2.length_of_longest_substring(s) end,
+  "s2op" => fn -> S2OP.length_of_longest_substring(s) end,
+  "s3" => fn -> S3.length_of_longest_substring(s) end
+})
+```
+
+## Recurion
+
+```elixir
+defmodule Util do
+  def sub_strs(s) do
+    sub_strs(s, 0, String.length(s))
+  end
+
+  def sub_strs(s, _, 1) do
+    String.graphemes(s)
+  end
+
+  def sub_strs(s, i, len) do
+    if i + len > byte_size(s) do
+      sub_strs(s, 0, len - 1)
+    else
+      [String.slice(s, i, len)] ++ sub_strs(s, i + 1, len)
+    end
+  end
+end
+
+Util.sub_strs("abcd")
+```
+
+## Recursion with cond
+
+```elixir
+defmodule Util do
+  def sub_strs(s) do
+    sub_strs(s, 0, String.length(s))
+  end
+
+  def sub_strs(s, i, len) do
+    cond do
+      len <= 1 -> String.graphemes(s)
+      i + len > byte_size(s) -> sub_strs(s, 0, len - 1)
+      true -> [String.slice(s, i, len)] ++ sub_strs(s, i + 1, len)
+    end
+  end
+end
+
+Util.sub_strs("abcd")
+```
+
+## Tail recursion
+
+```elixir
+defmodule Util do
+  def sub_strs(s) do
+    sub_strs(s, 0, String.length(s), [])
+  end
+
+  def sub_strs(_s, _i, 0, acc) do
+    acc
+  end
+
+  def sub_strs(s, i, len, acc) do
+    if i + len > byte_size(s) do
+      sub_strs(s, 0, len - 1, acc)
+    else
+      sub_strs(s, i + 1, len, acc ++ [String.slice(s, i, len)])
+    end
+  end
+end
+
+Util.sub_strs("abcd")
+```
+
+## Tail recursion with cond
+
+```elixir
+defmodule Utils do
+  def sub_strs(s) do
+    sub_strs(s, 0, String.length(s), [])
+  end
+
+  def sub_strs(s, i, len, acc) do
+    cond do
+      len == 0 -> acc
+      i + len > byte_size(s) -> sub_strs(s, 0, len - 1, acc)
+      true -> sub_strs(s, i + 1, len, acc ++ [String.slice(s, i, len)])
+    end
+  end
+end
+
+Utils.sub_strs("abcd")
 ```
