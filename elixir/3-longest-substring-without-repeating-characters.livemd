@@ -58,21 +58,25 @@ defmodule S2 do
 end
 ```
 
-## S2 - optimized
+## S2 - optimized use list
 
 ```elixir
-defmodule S2OP do
+defmodule S2OPL do
   @spec length_of_longest_substring(s :: String.t()) :: integer
   def length_of_longest_substring(s) do
     recur(String.graphemes(s), 0, String.length(s))
   end
 
   def recur(l, i, len) do
+    recur(l, i, len, len)
+  end
+
+  def recur(l, i, len, length) do
     cond do
       len <= 1 -> len
-      i + len > length(l) -> recur(l, 0, len - 1)
+      i + len > length -> recur(l, 0, len - 1, length)
       unique?(l, i, len) -> len
-      true -> recur(l, i + 1, len)
+      true -> recur(l, i + 1, len, length)
     end
   end
 
@@ -112,6 +116,64 @@ defmodule S2OP do
 end
 ```
 
+## S2 - optimized use str
+
+```elixir
+defmodule S2OPS do
+  @spec length_of_longest_substring(s :: String.t()) :: integer
+  def length_of_longest_substring(s) do
+    recur(s, 0, byte_size(s))
+  end
+
+  def recur(l, i, len) do
+    recur(l, i, len, len)
+  end
+
+  def recur(l, i, len, length) do
+    cond do
+      len <= 1 -> len
+      i + len > length -> recur(l, 0, len - 1, length)
+      unique?(l, i, len) -> len
+      true -> recur(l, i + 1, len, length)
+    end
+  end
+
+  defp unique?(_, _, len) when len > 63 do
+    false
+  end
+
+  defp unique?(l, index, len) do
+    :binary.part(l, index, len) |> unique?()
+  end
+
+  defp unique?("") do
+    true
+  end
+
+  defp unique?(l) do
+    <<c::binary-size(1)>> <> l = l
+
+    if unique?(l, c) do
+      unique?(l)
+    else
+      false
+    end
+  end
+
+  defp unique?("", _) do
+    true
+  end
+
+  defp unique?(<<first::binary-size(1)>> <> _rest, c) when c == first do
+    false
+  end
+
+  defp unique?(<<first::binary-size(1)>> <> rest, c) when c != first do
+    unique?(rest, c)
+  end
+end
+```
+
 ## S3
 
 from: [Idiomatic Elixir using pattern matching and tail recursion](https://leetcode.com/problems/longest-substring-without-repeating-characters/discuss/1511502/Idiomatic-Elixir-using-pattern-matching-and-tail-recursion)
@@ -141,7 +203,7 @@ end
 ExUnit.start(autorun: false)
 
 defmodule Test do
-  alias S2OP, as: Solution
+  alias S2OPS, as: Solution
   use ExUnit.Case
 
   test nil do
@@ -172,7 +234,8 @@ s =
 Benchee.run(%{
   # "s1" => fn -> S1.length_of_longest_substring(s) end,
   "s2" => fn -> S2.length_of_longest_substring(s) end,
-  "s2op" => fn -> S2OP.length_of_longest_substring(s) end,
+  "s2opl" => fn -> S2OPL.length_of_longest_substring(s) end,
+  "s2ops" => fn -> S2OPS.length_of_longest_substring(s) end,
   "s3" => fn -> S3.length_of_longest_substring(s) end
 })
 ```
